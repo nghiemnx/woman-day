@@ -1,0 +1,39 @@
+@font-face {
+  font-family: "MussicaSwash";
+  src: local("MussicaSwash"),
+    url("../../assets/fonts/UVF MussicaSwash.ttf") format("truetype");
+  font-weight: lighter;
+}
+
+.font-face-gm {
+  font-family: "MussicaSwash";
+}
+
+.font-face-gm * {
+  font-family: "MussicaSwash", Sans-Serif;
+}
+
+.animated-paragraph {
+  line-height: 2;
+}
+
+.animated-header {
+  margin: 0;
+  color: white;
+  text-indent: 10px;
+  font-size: x-large;
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#root {
+  height: 100%;
+}
+
+.border-image {
+  border: 10px solid transparent;
+}

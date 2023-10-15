@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import AuthPage from "../pages/AuthPage";
 import WelcomePage from "../pages/WelcomePage";
 import AboutUs from "../pages/AboutUs"; // import the AboutUs page
+import Celebrate from "../pages/Celebrate";
 
 export const pathnames: { [key: string]: string } = {
   auth: "/auth",
@@ -24,7 +25,7 @@ const routeConfig = createBrowserRouter([
   },
   {
     path: "/",
-    Component: WelcomePage,
+    Component: Celebrate,
   },
 ]);
 
