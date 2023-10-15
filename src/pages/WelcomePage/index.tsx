@@ -1,35 +1,72 @@
 import { ArrowForwardIcon } from "@chakra-ui/icons";
-import { Box, Button, Stack, Text } from "@chakra-ui/react";
+import { Box, Button, Stack, Text, useToast } from "@chakra-ui/react";
 import { TokenResponse, useGoogleLogin } from "@react-oauth/google";
 import { motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { animationWel } from "./animation";
 import axios from "axios";
+import { User } from "../../@types/user";
+import { useNavigate } from "react-router-dom";
+import { Pathname } from "../../config/router";
+import { GET_USER_INFO_DOMAIN, checkEmailExists } from "../../helper";
 
 const WelcomePage: React.FC = () => {
+  const navigate = useNavigate();
+  const [onProcess, setOnProcess] = useState(false);
+  const toast = useToast();
+  const loginAct = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      setUserInfo(tokenResponse);
+    },
+    onError: (error) => {
+      console.log(error);
+      setOnProcess(false);
+    },
+  });
   const [userInfo, setUserInfo] =
     useState<
       Omit<TokenResponse, "error" | "error_description" | "error_uri">
     >();
-  const handleLogin = useGoogleLogin({
-    onSuccess: (tokenResponse) => setUserInfo(tokenResponse),
-    onError: (error) => console.log(error),
-  });
+  const handleLogin = () => {
+    setOnProcess(true);
+    loginAct();
+  };
 
   useEffect(() => {
     if (userInfo) {
-      console.log(userInfo);
+      const { access_token } = userInfo;
       axios
-        .get("https://www.googleapis.com/auth/userinfo.profile", {
+        .get(GET_USER_INFO_DOMAIN, {
           headers: {
-            Authorization: `Bearer ${userInfo?.access_token}`,
+            Authorization: `Bearer ${access_token}`,
           },
         })
-        .then((res) => {
-          console.log("🚀 ~ file: index.tsx:25 ~ useEffect ~ res:", res);
+        .then(({ data }) => {
+          const userInfo: User = data;
+          if (userInfo.email && checkEmailExists(userInfo.email)) {
+            localStorage.setItem("userInfo", JSON.stringify(userInfo));
+            setTimeout(() => {
+              setOnProcess(false);
+              navigate(Pathname.home);
+            }, 1000);
+          } else {
+            setOnProcess(false);
+            toast({
+              title: "You are not allowed to access this site",
+              status: "warning",
+              duration: 2000,
+              isClosable: true,
+            });
+          }
         })
         .catch((error) => {
           console.log("🚀 ~ file: index.tsx:27 ~ useEffect ~ error:", error);
+          toast({
+            title: "Login Failed",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
         });
     }
   }, [userInfo]);
@@ -115,6 +152,8 @@ const WelcomePage: React.FC = () => {
             color={"tomato"}
             variant="text"
             onClick={() => handleLogin()}
+            isLoading={onProcess}
+            loadingText="Wait for processing"
           >
             Let's go, bae
           </Button>

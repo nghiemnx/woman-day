@@ -5,11 +5,12 @@ import { RouterProvider } from "react-router-dom";
 import routeConfig from "./config/router";
 import theme from "./config/theme";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { AUTH_DOMAIN } from "./helper";
 
 function App() {
   return (
     <ChakraProvider theme={theme}>
-      <GoogleOAuthProvider clientId="797942620653-seq35gb5q5oq0f237sad0jnpumgducq9.apps.googleusercontent.com">
+      <GoogleOAuthProvider clientId={AUTH_DOMAIN}>
         <RouterProvider router={routeConfig} />
       </GoogleOAuthProvider>
       ;
