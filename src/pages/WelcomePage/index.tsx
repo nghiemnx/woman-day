@@ -1,84 +1,38 @@
 import { ArrowForwardIcon } from "@chakra-ui/icons";
 import { Box, Button, Stack, Text } from "@chakra-ui/react";
-import { AnimationProps, motion } from "framer-motion";
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { pathnames } from "../../config/router";
+import { TokenResponse, useGoogleLogin } from "@react-oauth/google";
+import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { animationWel } from "./animation";
+import axios from "axios";
 
 const WelcomePage: React.FC = () => {
-  const navigate = useNavigate();
-  const handleClick = () => {
-    navigate(pathnames.auth);
-  };
+  const [userInfo, setUserInfo] =
+    useState<
+      Omit<TokenResponse, "error" | "error_description" | "error_uri">
+    >();
+  const handleLogin = useGoogleLogin({
+    onSuccess: (tokenResponse) => setUserInfo(tokenResponse),
+    onError: (error) => console.log(error),
+  });
 
-  const text1Variants: AnimationProps["variants"] = {
-    hidden: {
-      opacity: 0,
-      y: -50,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transition: {
-        duration: 2,
-      },
-    },
-  };
-
-  const text2Variants: AnimationProps["variants"] = {
-    hidden: {
-      opacity: 0,
-      x: 100,
-      scale: 0.5,
-    },
-    visible: {
-      opacity: 1,
-      x: 0,
-      scale: 1,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transition: {
-        duration: 1,
-      },
-    },
-  };
-
-  const text3Variants: AnimationProps["variants"] = {
-    hidden: {
-      opacity: 0,
-      y: 50,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transition: {
-        duration: 3,
-      },
-    },
-  };
-
-  const text4Variants: AnimationProps["variants"] = {
-    hidden: {
-      x: -5,
-    },
-    visible: {
-      x: 5,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transition: {
-        duration: 2,
-        repeat: Infinity,
-      },
-    },
-  };
+  useEffect(() => {
+    if (userInfo) {
+      console.log(userInfo);
+      axios
+        .get("https://www.googleapis.com/auth/userinfo.profile", {
+          headers: {
+            Authorization: `Bearer ${userInfo?.access_token}`,
+          },
+        })
+        .then((res) => {
+          console.log("🚀 ~ file: index.tsx:25 ~ useEffect ~ res:", res);
+        })
+        .catch((error) => {
+          console.log("🚀 ~ file: index.tsx:27 ~ useEffect ~ error:", error);
+        });
+    }
+  }, [userInfo]);
 
   return (
     <Box
@@ -91,7 +45,11 @@ const WelcomePage: React.FC = () => {
       placeContent={"center"}
     >
       <Stack w={"90%"} spacing={3}>
-        <motion.div variants={text1Variants} initial="hidden" animate="visible">
+        <motion.div
+          variants={animationWel.text1Variants}
+          initial="hidden"
+          animate="visible"
+        >
           <Text
             fontWeight={800}
             textAlign={"center"}
@@ -101,7 +59,11 @@ const WelcomePage: React.FC = () => {
             20 October
           </Text>
         </motion.div>
-        <motion.div variants={text2Variants} initial="hidden" animate="visible">
+        <motion.div
+          variants={animationWel.text2Variants}
+          initial="hidden"
+          animate="visible"
+        >
           <Text
             as="b"
             textAlign={"center"}
@@ -117,7 +79,11 @@ const WelcomePage: React.FC = () => {
         </motion.div>
       </Stack>
       <Stack spacing={3} w={"70%"}>
-        <motion.div variants={text3Variants} initial="hidden" animate="visible">
+        <motion.div
+          variants={animationWel.text3Variants}
+          initial="hidden"
+          animate="visible"
+        >
           <Text
             fontWeight={500}
             textAlign={"center"}
@@ -139,7 +105,7 @@ const WelcomePage: React.FC = () => {
           <Button
             rightIcon={
               <motion.div
-                variants={text4Variants}
+                variants={animationWel.text4Variants}
                 initial="hidden"
                 animate="visible"
               >
@@ -148,7 +114,7 @@ const WelcomePage: React.FC = () => {
             }
             color={"tomato"}
             variant="text"
-            onClick={handleClick}
+            onClick={() => handleLogin()}
           >
             Let's go, bae
           </Button>
