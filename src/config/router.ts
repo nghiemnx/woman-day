@@ -1,26 +1,26 @@
 import { createBrowserRouter } from "react-router-dom";
-import AuthPage from "../pages/AuthPage";
+import AuthPage from "../pages/HomePage";
 import WelcomePage from "../pages/WelcomePage";
 import AboutUs from "../pages/AboutUs"; // import the AboutUs page
 import Celebrate from "../pages/Celebrate";
 
-export const pathnames: { [key: string]: string } = {
-  auth: "/auth",
-  welcome: "/welcome",
-  aboutUs: "/about-us", // add the path for the AboutUs page
-};
+export enum Pathname {
+  home = "/home",
+  welcome = "/welcome",
+  aboutUs = "/about-us", // add the path for the AboutUs page
+}
 
 const routeConfig = createBrowserRouter([
   {
-    path: pathnames.auth,
+    path: Pathname.home,
     Component: AuthPage,
   },
   {
-    path: pathnames.welcome,
+    path: Pathname.welcome,
     Component: WelcomePage,
   },
   {
-    path: pathnames.aboutUs,
+    path: Pathname.aboutUs,
     Component: AboutUs,
   },
   {

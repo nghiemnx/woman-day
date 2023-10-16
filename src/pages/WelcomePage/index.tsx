@@ -1,84 +1,75 @@
 import { ArrowForwardIcon } from "@chakra-ui/icons";
-import { Box, Button, Stack, Text } from "@chakra-ui/react";
-import { AnimationProps, motion } from "framer-motion";
-import React from "react";
+import { Box, Button, Stack, Text, useToast } from "@chakra-ui/react";
+import { TokenResponse, useGoogleLogin } from "@react-oauth/google";
+import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { animationWel } from "./animation";
+import axios from "axios";
+import { User } from "../../@types/user";
 import { useNavigate } from "react-router-dom";
-import { pathnames } from "../../config/router";
+import { Pathname } from "../../config/router";
+import { GET_USER_INFO_DOMAIN, checkEmailExists } from "../../helper";
 
 const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
-  const handleClick = () => {
-    navigate(pathnames.auth);
+  const [onProcess, setOnProcess] = useState(false);
+  const toast = useToast();
+  const loginAct = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      setUserInfo(tokenResponse);
+    },
+    onError: (error) => {
+      console.log(error);
+      setOnProcess(false);
+    },
+  });
+  const [userInfo, setUserInfo] =
+    useState<
+      Omit<TokenResponse, "error" | "error_description" | "error_uri">
+    >();
+  const handleLogin = () => {
+    setOnProcess(true);
+    loginAct();
   };
 
-  const text1Variants: AnimationProps["variants"] = {
-    hidden: {
-      opacity: 0,
-      y: -50,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transition: {
-        duration: 2,
-      },
-    },
-  };
-
-  const text2Variants: AnimationProps["variants"] = {
-    hidden: {
-      opacity: 0,
-      x: 100,
-      scale: 0.5,
-    },
-    visible: {
-      opacity: 1,
-      x: 0,
-      scale: 1,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transition: {
-        duration: 1,
-      },
-    },
-  };
-
-  const text3Variants: AnimationProps["variants"] = {
-    hidden: {
-      opacity: 0,
-      y: 50,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transition: {
-        duration: 3,
-      },
-    },
-  };
-
-  const text4Variants: AnimationProps["variants"] = {
-    hidden: {
-      x: -5,
-    },
-    visible: {
-      x: 5,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transition: {
-        duration: 2,
-        repeat: Infinity,
-      },
-    },
-  };
+  useEffect(() => {
+    if (userInfo) {
+      const { access_token } = userInfo;
+      axios
+        .get(GET_USER_INFO_DOMAIN, {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        })
+        .then(({ data }) => {
+          const userInfo: User = data;
+          if (userInfo.email && checkEmailExists(userInfo.email)) {
+            localStorage.setItem("userInfo", JSON.stringify(userInfo));
+            setTimeout(() => {
+              setOnProcess(false);
+              navigate(Pathname.home);
+            }, 1000);
+          } else {
+            setOnProcess(false);
+            toast({
+              title: "You are not allowed to access this site",
+              status: "warning",
+              duration: 2000,
+              isClosable: true,
+            });
+          }
+        })
+        .catch((error) => {
+          console.log("🚀 ~ file: index.tsx:27 ~ useEffect ~ error:", error);
+          toast({
+            title: "Login Failed",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        });
+    }
+  }, [userInfo]);
 
   return (
     <Box
@@ -91,7 +82,11 @@ const WelcomePage: React.FC = () => {
       placeContent={"center"}
     >
       <Stack w={"90%"} spacing={3}>
-        <motion.div variants={text1Variants} initial="hidden" animate="visible">
+        <motion.div
+          variants={animationWel.text1Variants}
+          initial="hidden"
+          animate="visible"
+        >
           <Text
             fontWeight={800}
             textAlign={"center"}
@@ -101,7 +96,11 @@ const WelcomePage: React.FC = () => {
             20 October
           </Text>
         </motion.div>
-        <motion.div variants={text2Variants} initial="hidden" animate="visible">
+        <motion.div
+          variants={animationWel.text2Variants}
+          initial="hidden"
+          animate="visible"
+        >
           <Text
             as="b"
             textAlign={"center"}
@@ -117,7 +116,11 @@ const WelcomePage: React.FC = () => {
         </motion.div>
       </Stack>
       <Stack spacing={3} w={"70%"}>
-        <motion.div variants={text3Variants} initial="hidden" animate="visible">
+        <motion.div
+          variants={animationWel.text3Variants}
+          initial="hidden"
+          animate="visible"
+        >
           <Text
             fontWeight={500}
             textAlign={"center"}
@@ -139,7 +142,7 @@ const WelcomePage: React.FC = () => {
           <Button
             rightIcon={
               <motion.div
-                variants={text4Variants}
+                variants={animationWel.text4Variants}
                 initial="hidden"
                 animate="visible"
               >
@@ -148,7 +151,9 @@ const WelcomePage: React.FC = () => {
             }
             color={"tomato"}
             variant="text"
-            onClick={handleClick}
+            onClick={() => handleLogin()}
+            isLoading={onProcess}
+            loadingText="Wait for processing"
           >
             Let's go, bae
           </Button>
