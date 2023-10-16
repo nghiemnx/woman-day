@@ -1,4 +1,4 @@
-import { Heading, Text } from "@chakra-ui/react";
+import { Heading } from "@chakra-ui/react";
 import MainLayout from "../../layout/MainLayout";
 
 const AboutUs: React.FC = () => {
